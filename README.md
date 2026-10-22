@@ -1,56 +1,31 @@
-# sv
+# Smart Waste Tracker
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Dashboard SvelteKit menerima pembaruan tong sampah real-time melalui HiveMQ Cloud. Simulator Python menerbitkan payload yang sama ke topik MQTT.
 
-## Creating a project
+## Konfigurasi lokal
 
-If you're seeing this, you've probably already done this step. Congrats!
+1. Salin `.env.example` menjadi `.env`, lalu isi hostname dan kredensial HiveMQ Cloud. Jangan commit file `.env`.
+2. Jalankan dashboard: `npm run dev`.
+3. Instal dependensi simulator: `py -m pip install -r src/dummy/requirements.txt`.
+4. Jalankan simulator: `py src/dummy/publisher.py`. Simulator otomatis memuat file `.env`.
 
-```sh
-# create a new project
-npx sv create my-app
+Publisher memakai MQTT lewat TLS di port `8883`; browser memakai WebSocket aman (WSS) di port `8884` dan path `/mqtt`. Status koneksi terlihat di header dashboard.
+
+## Kontrak pesan
+
+Topik default: `sic/waste/sensors`.
+
+```json
+{
+	"id_tongsampah": "BIN-01",
+	"volume": 20,
+	"long": 107.575,
+	"lat": -6.873,
+	"suhu": 28,
+	"tilt": 0,
+	"alert": 0,
+	"timestamp": "2026-10-22T07:00:00Z"
+}
 ```
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@1.1.1 create --template minimal --types jsdoc --add prettier tailwindcss="plugins:forms" --install npm waste-tracker
-```
-
-## Adding features
-
-Add features to your project with `sv add`:
-
-```sh
-npx sv add
-```
-
-For example, to add Tailwind CSS:
-
-```sh
-npx sv add tailwindcss
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Gunakan dua credential berbeda: `sensor-publisher` hanya boleh **publish** ke `sic/waste/sensors`, sedangkan `dashboard-reader` hanya boleh **subscribe** ke topik itu. Karena variabel yang diawali `VITE_` terkirim ke browser, password dashboard harus dibatasi izinnya dan tidak boleh memakai akun admin.
